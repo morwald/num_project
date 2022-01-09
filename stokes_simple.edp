@@ -1,0 +1,28 @@
+// parameters
+real eps = 1e-10; // for penalty method 
+int n = 50;
+
+// mesh
+mesh Th = square(n, n);
+
+// fespaces
+fespace Qh(Th, [P1b, P1b]);
+Qh [u1, u2], [v1, v2];
+
+fespace Vh(Th, P1);
+Vh p, q;
+ 
+// problem
+solve stokes ([u1, u2, p], [v1, v2, q])
+	=   int2d(Th)(dx(u1)*dx(v1) + dy(u1)*dy(v1) + dx(u2)*dx(v2) + dy(u2)*dy(v2))
+	  - int2d(Th)(p*(dx(v1) + dy(v2)))
+
+      - int2d(Th)(q*(dx(u1) + dy(u2)))
+	  - int2d(Th)(eps*p*q)
+
+      + on(1, 2, 4, u1=0, u2=0)
+	  + on(3, u1=1, u2=0);
+ 
+// plot
+plot([u1, u2], p, value=true, wait=true);
+plot(p, value=true, fill=true, wait=true);

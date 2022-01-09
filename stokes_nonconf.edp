@@ -1,0 +1,34 @@
+// parameters
+real eps = 1e-10; // for penalty method 
+
+int top = 1; // label top
+int other = 2; // label other boundaries
+
+real frac = 0.1; // fraction of side length in upper area
+int nu = 200; // mesh size in upper area top
+int nu2 = nu * frac; // mesh size upper area on the side
+int nl = nu * frac; // mesh size in lower area
+
+// lower mesh
+border al(t=0, 1){x=t; y=0; label=other;};
+border bl(t=0, 1-frac){x=1; y=t; label=other;};
+border cl(t=0, 1){x=1-t; y=1-frac; label=other;};
+border dl(t=frac, 1){x=0; y=1-t; label=other;};
+
+mesh Thl = buildmesh(al(nl)+bl(nl)+cl(nl)+dl(nl));
+
+// upper mesh
+border au(t=0, 1){x=t; y=1-frac; label=other;};
+border bu(t=0, frac){x=1; y=1-frac+t; label=other;};
+border cu(t=0, 1){x=(1-t); y=1; label=top;};
+border du(t=0, frac){x=0; y=(1-t); label=other;};
+
+mesh Thu = buildmesh(au(nu)+bu(nu2)+cu(nu)+du(nu2));
+
+plot(Thl, Thu, wait=1);
+
+// fespaces
+ 
+// problem
+ 
+// plot
