@@ -1,0 +1,213 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{parskip}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\usepackage[utf8]{inputenc}
+
+\title{%
+  Project 1 - Flow in a driven cavity and non conforming mesh coupling \\
+  \bigskip
+  \large Numerics for Fluids, Structures and Electromagnetics}
+
+\author{Mathieu Grondin, Moritz Waldleben}
+\date{January 2022}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+We consider the following Stokes problem on the domain $\Omega \subset
+\mathbf{R}^2$ for the velocity $\mathbf{u} : \Omega \rightarrow \mathbb{R}^2$
+and the pressure $p:\Omega \rightarrow \mathbb{R}$ :
+\begin{align}
+    \label{problem}
+    -\Delta \mathbf{u} + \nabla p &= \mathbf{f}  \quad\textrm{in } \Omega\nonumber\\ 
+    \textrm{div} \mathbf{u} &= 0 \quad \textrm{in } \Omega \\
+    \mathbf{u} &= \mathbf{g} \quad \textrm{on } \partial \Omega  \nonumber
+\end{align}
+where $\mathbf{f} : \Omega \rightarrow \mathbb{R}^2$ and $\mathbf{g} :
+\partial\Omega\rightarrow\mathbb{R}^2$ are two given function. In particular
+assume that $\mathbf{f} \in [H^{-1}(\Omega)]^2=\mathbf{H}^{-1}(\Omega)$ and
+$\mathbf{g} \in [H^{1/2}(\partial\Omega)]^2=\mathbf{H}^{1/2}(\partial\Omega)$.
+
+This problem corresponds to solving a flow of a incompressible fluid where
+viscous forces dominate inertial forces (i.e. low Reynolds number). The
+equations are essentially the linearized Navier-Stokes equations neglecting
+inertial terms. 
+
+\section{Question 1}
+Suppose, ab absurdo, that there exists a solution $\mathbf{u}$ to problem \ref{problem} but \\
+$\int_{\partial\Omega}\mathbf{g}\cdot\mathbf{n} \neq 0$. It results that : 
+\begin{align*}
+    \int_{\partial\Omega}\mathbf{g}\cdot\mathbf{n} = \int_{\partial\Omega}\mathbf{u}\cdot \mathbf{n} = \int_{\Omega}\textrm{div}\mathbf{u}=\int_{\Omega}0=0 
+\end{align*}
+We used the fact that $\mathbf{u}$ is a solution to the equation. Furthermore
+the divergence theorem was applied. This results however in a contradiction to
+the assumption. Hence this proves that  $\int_{\partial\Omega}
+\mathbf{g}\cdot\mathbf{n}=0$ is a necessary condition for the existence of a
+solution.
+
+From a physical point of view this correspond to the fact that there can be no
+net flux outwards from the domain $\Omega$ as the flow has no source of fluid
+inside the domain.
+
+\section*{Question 2}
+\subsection*{Weak formulation}
+Problem \ref{problem} has to be expressed in a weak formulation. To do so we
+multiply the first equation by a test function $\mathbf{v}$ and integrate over
+the domain $\Omega$. Hence we get :
+\begin{align*}
+	& \int_{\Omega}-\Delta \mathbf{u} \,\mathbf{v}+\int_{\Omega}\nabla p \,\mathbf{v} = \int_{\Omega}\mathbf{f}\, \mathbf{v} \\
+	\Leftrightarrow& \int_{\Omega} \nabla \mathbf{u} \mathbf{:} \nabla \mathbf{v}-\int_{\partial\Omega} (\nabla \mathbf{u}\cdot n)\, \mathbf{v}  -\int_{\Omega} p\, \mathrm{div}\mathbf{v}+\int_{\partial\Omega}p\,(\mathbf{v}\cdot \mathbf{n})=\int_{\Omega}\mathbf{f}\, \mathbf{v} \\
+	\Leftrightarrow& \int_{\Omega} \nabla \mathbf{u} \mathbf{:} \nabla \mathbf{v}-\int_{\Omega} p\, \mathrm{div}\mathbf{v}=\int_{\Omega}\mathbf{f}\, \mathbf{v}+\int_{\partial\Omega} (\nabla \mathbf{g}\cdot \mathbf{n})\, \mathbf{v}-\int_{\partial\Omega}p\,(\mathbf{v}\cdot \mathbf{n})   
+\end{align*}
+In the development above we did an integration by parts and then used the fact
+that $\mathbf{u}=\mathbf{g} \textrm{ on } \partial\Omega$.
+
+Analogously we multiply the second equation by a another test function
+$\mathbf(q)$ and integrate over $\Omega$ , using the same properties the
+equation becomes :
+\begin{equation*}
+    -\int_{\Omega} q\, \mathrm{div}\mathbf{u}+\int_{\partial\Omega}q\,(\mathbf{u}\cdot \mathbf{n})=0
+\end{equation*}
+
+\subsection*{Functional spaces}
+It remains the question which are the functional spaces to be imposed for the
+solution for our problem. In the first equation the gradient of the
+testfunction $\mathbf{v}$ appears. In addition we wan't make the integral for
+the test function vanish on the boundary. A natural choice is :
+$[H^1_0(\Omega)]^2 = \mathbf{H}^1_0(\Omega)$
+This space is formally defined by :  
+\begin{align*}
+	\mathbf{H}^1_0(\Omega) = \left\{\mathbf{u} \;:\; \mathbf{u} \in L^2(\Omega),
+	\nabla \mathbf{u} \in L^2(\Omega), \textrm{ and }
+	\mathbf{u}|_{\partial\Omega}=0 \right\}
+\end{align*}
+
+To be changed:
+\textbf{Thanks to this definition on the space the two border integrals will vanish.
+For the second test functions, nothing special appears, nothing more than
+integral over the domain, so a natural space is $L^2(\Omega)$. 
+On the other hand, for the spaces of solutions, to apply the Lax-Milgram theorem we need the
+same space functions. However in this case this is not possible. First we have
+a boundary condition on the border for $\mathbf{u}$. So we consider the affine
+space $[H^1_g(\Omega)]^2=\mathbf{H}^1_g(\Omega)$ define as :}
+\begin{align*}
+    \mathbf{H}^1_g(\Omega)=\left\{\mathbf{u} \;:\; u\in L^2(\Omega), \nabla \mathbf{u} \in L^2(\Omega), \textrm{ and } \mathbf{u}|_{\partial\Omega}=g \right\}
+\end{align*}
+For the pression, we notice that the solution is unique up to a constant term.
+To fix this we can impose that $\int_\Omega p =0$. Appart from this special
+issue the pression space is free. We choose $L_0^2(\Omega)$ as the space for
+pression, and we impose it also for $q$.
+\begin{align*}
+    L^2_0(\Omega)=\left\{p\in L^2(\Omega)\; : \; \int_\Omega p =0\right\}
+\end{align*}
+
+The problem reads :
+Find $(\mathbf{u},p)\in \mathbf{H}^1_g(\Omega)\times L^2_0(\Omega)$ such that
+$\forall (\mathbf{v},q)\in \mathbf{H}^1_0(\Omega)\times L^2_0(\Omega)$ the
+following holds :
+\begin{align}
+	\label{weak_problem}
+	\int_{\Omega} \nabla \mathbf{u} \mathbf{:} \nabla \mathbf{v}-\int_{\Omega} p\,
+	\mathrm{div}\mathbf{v} &= \int_{\Omega}\mathbf{f}\, \mathbf{v} \\
+	-\int_{\Omega} q\, \mathrm{div}\mathbf{u} &= 0 \nonumber
+\end{align}
+
+\subsection*{Mixed finite element element discrete formulation}
+As we have seen in class problem \ref{weak_problem} verifies the
+\textbf{inf-sup} condition and admits a unique solution in $\Omega$. No we will
+write the inifite dimensional problem in a finite dimensional abstract form :
+
+Find $(\mathbf{u}_h,p)\in \mathbf{V}_h(\Omega) \times Q_h(\Omega)$ such that
+$\forall (\mathbf{v}_h,q)\in \mathbf{V}_{h,0}(\Omega) \times Q_{h,0}(\Omega)$ the
+following holds :
+\begin{align}
+	\label{pert_problem}
+	a(\mathbf{u}_h,\mathbf{v}_h) - b(\mathbf{v}_h,p_h) &= F(\mathbf{v}) \\
+	b(\mathbf{u}_h, q_h) &= 0 \nonumber
+\end{align}
+The descrete case now has to verify the \textbf{descrete inf-sup} has to be
+verified. A common stable choice is the mini-element which consist of an
+enreached $\mathbb{P}_1$ finite element space with bubble function and
+$\mathbb{P}_1$ FEM space for the pressure.
+
+\subsection*{A priori error estimate}
+
+\section*{Question 3}
+We implement the problem with the functional spaces given in the previous
+section. The complete code can be seen in annex \ref{annex}. To fix the
+constant part of the pressure (we don't have any pressure boundary conditions)
+we solve a slightly different problem :
+
+Find $(\mathbf{u}^\epsilon_h,p)\in \mathbf{V}_h(\Omega) \times \mathbf{Q}_h(\Omega)$ such that
+$\forall (\mathbf{v}_h,q)\in \mathbf{V}_{h,0}(\Omega) \times \tilde{Q}_h(\Omega)$ the
+following holds :
+\begin{align}
+	\label{abstract_form_dis}
+	a(\mathbf{u}^\epsilon_h,\mathbf{v}^\epsilon_h) -
+	b(p^\epsilon_h,\mathbf{v}^\epsilon_h) &= F(\mathbf{v}) \\ b(p,\mathbf{v}) -
+	c(p^\epsilon_h,q^\epsilon_h) &= 0 \nonumber
+\end{align}
+
+This equations are called the perturbed Stokes equations. It is simple to
+verify that the zero mean pressure condition is verified. .... show that there
+exists a unique solution to this problem and that the error of the perturbed
+problem is not to far away from the the actual problem we wanted solve:
+
+As a side remark: This strategy is called the penalty method and helps to.... 
+
+As we seen that problems mostly occurs close to the boundary, we redefine the
+mesh to be finer close to the boundary. The space will be divided in two
+disjoint regions, specifically we will define an inner square of length 0.8.
+Inside this inner square the meshsize will be quite large, but outside this
+square the mesh size will be more fine grained. We can  modify the mesh size by
+setting the number of points along the inner and outer boundary. 
+
+\begin{lstlisting}[language=C++]
+\end{lstlisting}
+
+
+This definition of the mesh gives us :
+
+With this mesh the solution is given by :
+
+\section*{Question 4}
+
+\section*{Question 5}
+J'ai compris.
+
+\section*{Annex} \label{annex}
+\begin{lstlisting} [language=C++]
+\end{lstlisting}
+
+\end{document}
