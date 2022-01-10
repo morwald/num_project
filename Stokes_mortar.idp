@@ -1,0 +1,84 @@
+
+// Parameters
+int nn = 300;
+int nnn = 50;
+
+//Mesh
+real xx=0.10;
+border a(t=0, 1){x=t;y=0;label=1;};
+border b(t=0, 1-xx){x=1;y=t;label=1;};
+border a1(t=0, 1){x=1-t;y=1-xx;label=2;};
+border d(t=xx, 1){x=0; y=(1-t); label=1;};
+
+border b1(t=0, xx){x=1;y=1-xx+t;label=1;};
+border c(t=0, 1){x=(1-t); y=1; label=3;};
+border d1(t=0, xx){x=0; y=(1-t); label=1;};
+
+
+mesh Th1= buildmesh(a(nnn)+b((1-xx)*nnn)+a1(nnn)+d((1-xx)*nnn));
+mesh Th2= buildmesh(b1(xx*nn)+c(nn)+d1(xx*nn)+a1(-nn));
+plot(Th1,Th2, wait=1);
+mesh Interface= emptymesh(Th2);
+
+fespace Bh1(Interface, [P0,P0]);
+Bh1 [lambda,mu];
+
+//Fespace
+fespace Xh1(Th1,[P1b,P1b,P1]);
+Xh1 [u1,v1,p1];
+varf stokes1 ([u, v, p], [uu, vv, pp], solver=sparsesolver)
+     = int2d(Th1)(
+           dx(u)*dx(uu)
+         + dy(u)*dy(uu)
+         + dx(v)*dx(vv)
+         + dy(v)*dy(vv)
+         + p*dx(uu)
+         + p*dy(vv)
+         + pp*(dx(u) + dy(v))
+	   -1e-6*p*pp
+	 )+on(1, u=0, v=0)
+	 ;
+
+fespace Xh2(Th2,[P1b,P1b,P1]);
+Xh2 [u2,v2,p2];
+
+varf stokes2 ([u, v, p], [uu, vv, pp],solver=sparsesolver)
+     = int2d(Th2)(
+           dx(u)*dx(uu)
+         + dy(u)*dy(uu)
+         + dx(v)*dx(vv)
+         + dy(v)*dy(vv)
+         + p*dx(uu)
+         + p*dy(vv)
+         + pp*(dx(u) + dy(v))
+		-1e-6*p*pp
+	 )+on(1, u=0, v=0)
+     + on(3, u=1, v=0);
+
+varf lagrange1 ([lambda,mu],[u,v,p],solver=sparsesolver) = int1d(Th2,2)(v*lambda-u*mu);
+varf lagrange2 ([lambda,mu], [u,v,p], solver=sparsesolver) = int1d(Th2,2)(-v*lambda+u*mu);
+
+
+matrix A1 = stokes1(Xh1, Xh1);
+real[int] B1= stokes1(0, Xh1);
+matrix A2 = stokes2(Xh2,Xh2);
+real[int] B2 = stokes2(0,Xh2);
+
+matrix L1= lagrange1(Bh1, Xh1);
+matrix L2= lagrange2(Bh1, Xh2);
+real[int] B3(Bh1.ndof);B3=0;
+matrix A=  [[A1, 0,L1],
+	   [0, A2, L2], 
+	   [L1',L2',0]];
+set(A, solver= sparsesolver);
+
+real[int] B=[B1, B2, B3];
+real[int] S1(Xh1.ndof), S2(Xh2.ndof),Multipliers(Bh1.ndof);
+real[int] sol=A^-1*B;
+[S1,S2,Multipliers]=sol;
+p1[]=S1;
+p2[]=S2;
+lambda[]=Multipliers;
+plot([u1,v1], p1,[u2,v2],p2,value=true, wait=true);
+
+
