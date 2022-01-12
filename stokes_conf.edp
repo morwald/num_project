@@ -1,44 +1,37 @@
 // parameters
-real eps = 1e-10; // for penalty method 
-
-int top = 1; // label top
-int other = 2; // label other boundaries
+real eps = 1e-6; // for penalty method 
 
 real frac = 0.1; // fraction of side length in upper area
-int nu = 200; // mesh size in upper area top
-int nu2 = nu * frac; // mesh size upper area on the side
-int nl = nu * frac; // mesh size in lower area
+int n2 = 300; // mesh size in upper area top
+int n1 = n2 * frac; // mesh size upper area on the side
 
 // mesh
-border al(t=0, 1){x=t; y=0; label=other;};
-border bl(t=0, 1-frac){x=1; y=t; label=other;};
-border cul(t=0, 1){x=1-t; y=1-frac; label=other;}; // border between areas
-border dl(t=frac, 1){x=0; y=1-t; label=other;};
-border au(t=0, frac){x=1; y=1-frac+t; label=other;};
-border bu(t=0, 1){x=(1-t); y=1; label=top;};
-border cu(t=0, frac){x=0; y=(1-t); label=other;};
+border a1(t=0, 1){x=t; y=0; label=1;};
+border b1(t=0, 1-frac){x=1; y=t; label=1;};
+border c12(t=0, 1){x=1-t; y=1-frac; label=2;}; // border between areas
+border d1(t=frac, 1){x=0; y=1-t; label=1;};
+border a2(t=0, frac){x=1; y=1-frac+t; label=1;};
+border b2(t=0, 1){x=1-t; y=1; label=3;};
+border c2(t=0, frac){x=0; y=1-t; label=1;};
 
-mesh Th = buildmesh(al(nl)+bl(nl)+cul(nl)+dl(nl)+au(nu2)+bu(nu)+cu(nu2));
+mesh Th = buildmesh(a1(n1)+b1((1-frac)*n1)+c12(n1)+d1((1-frac)*n1)+a2(frac*n2)+b2(n2)+c2(frac*n2));
+
 plot(Th, wait=1);
 
 // fespaces
-fespace Qh(Th, [P1b, P1b]);
-Qh [u1, u2], [v1, v2];
-
-fespace Vh(Th, P1);
-Vh p, q;
+fespace Xh(Th, [P1b, P1b, P1]);
+Xh[ux, uy, p], [vx, vy, q];
  
 // problem
-solve stokes ([u1, u2, p], [v1, v2, q])
-	=   int2d(Th)(dx(u1)*dx(v1) + dy(u1)*dy(v1) + dx(u2)*dx(v2) + dy(u2)*dy(v2))
-	  - int2d(Th)(p*(dx(v1) + dy(v2)))
+solve stokes ([ux, uy, p], [vx, vy, q])
+	=   int2d(Th)(dx(ux)*dx(vx) + dy(ux)*dy(vx) + dx(uy)*dx(vy) + dy(uy)*dy(vy))
+	  - int2d(Th)(p*(dx(vx) + dy(vy)))
 
-      - int2d(Th)(q*(dx(u1) + dy(u2)))
+      - int2d(Th)(q*(dx(ux) + dy(uy)))
 	  - int2d(Th)(eps*p*q)
 
-      + on(top, u1=1, u2=0)
-	  + on(other, u1=0, u2=0);
- 
+	  + on(3, ux=1, uy=0)
+      + on(1, ux=0, uy=0);
+
 // plot
-plot([u1, u2], p, value=true, wait=true);
-plot(p, value=true, fill=true, wait=true);
+plot([ux, uy], p, value=true, wait=true);

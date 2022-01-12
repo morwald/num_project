@@ -1,34 +1,89 @@
 // parameters
-real eps = 1e-10; // for penalty method 
+real eps = 1e-6; // for penalty method 
 
-int top = 1; // label top
-int other = 2; // label other boundaries
-
-real frac = 0.1; // fraction of side length in upper area
-int nu = 200; // mesh size in upper area top
-int nu2 = nu * frac; // mesh size upper area on the side
-int nl = nu * frac; // mesh size in lower area
+real frac = 0.1; // fraction of side length of upper area
+int n2 = 300; // mesh size in upper area top
+int n1 = n2 * frac; // mesh size in lower area
 
 // lower mesh
-border al(t=0, 1){x=t; y=0; label=other;};
-border bl(t=0, 1-frac){x=1; y=t; label=other;};
-border cl(t=0, 1){x=1-t; y=1-frac; label=other;};
-border dl(t=frac, 1){x=0; y=1-t; label=other;};
+border a1(t=0, 1){x=t; y=0; label=1;};
+border b1(t=0, 1-frac){x=1; y=t; label=1;};
+border c1(t=0, 1){x=1-t; y=1-frac; label=2;};
+border d1(t=frac, 1){x=0; y=1-t; label=1;};
 
-mesh Thl = buildmesh(al(nl)+bl(nl)+cl(nl)+dl(nl));
+mesh Th1 = buildmesh(a1(n1)+b1((1-frac)*n1)+c1(n1)+d1((1-frac)*n1));
 
 // upper mesh
-border au(t=0, 1){x=t; y=1-frac; label=other;};
-border bu(t=0, frac){x=1; y=1-frac+t; label=other;};
-border cu(t=0, 1){x=(1-t); y=1; label=top;};
-border du(t=0, frac){x=0; y=(1-t); label=other;};
+border a2(t=0, frac){x=1;y=1-frac+t; label=1;};
+border b2(t=0, 1){x=1-t; y=1; label=3;};
+border c2(t=0, frac){x=0; y=1-t; label=1;};
+border d2(t=0, 1){x=t; y=1-frac; label=2;};
 
-mesh Thu = buildmesh(au(nu)+bu(nu2)+cu(nu)+du(nu2));
+mesh Th2 = buildmesh(a2(frac*n2)+b2(n2)+c2(frac*n2)+d2(n2));
 
-plot(Thl, Thu, wait=1);
+plot(Th1, Th2, wait=1);
 
-// fespaces
- 
-// problem
- 
+// interface mesh
+mesh interface = emptymesh(Th2);
+
+// lower fespaces and problem
+fespace Xh1(Th1, [P1b, P1b, P1]);
+Xh1[ux1, uy1, p1];
+
+varf stokes1([ux, uy, p], [vx, vy, q], solver=sparsesolver)
+	=   int2d(Th1)(dx(ux)*dx(vx) + dy(ux)*dy(vx) + dx(uy)*dx(vy) + dy(uy)*dy(vy))
+	  - int2d(Th1)(p*(dx(vx) + dy(vy)))
+
+	  - int2d(Th1)(q*(dx(ux) + dy(uy)))
+	  - int2d(Th1)(eps*p*q)
+
+	  + on(1, ux=0, uy=0);
+
+// upper fespaces and problem
+fespace Xh2(Th2, [P1b, P1b, P1]);
+Xh2[ux2, uy2, p2];
+
+varf stokes2([ux, uy, p], [vx, vy, q], solver=sparsesolver)
+	=   int2d(Th2)(dx(ux)*dx(vx) + dy(ux)*dy(vx) + dx(uy)*dx(vy) + dy(uy)*dy(vy))
+	  - int2d(Th2)(p*(dx(vx) + dy(vy)))
+
+	  - int2d(Th2)(q*(dx(ux) + dy(uy)))
+	  - int2d(Th2)(eps*p*q)
+
+	  + on(3, ux=1, uy=0)
+	  + on(1, ux=0, uy=0);
+
+// interface fespace
+fespace Ih(interface, [P0, P0]);
+Ih [lambda, mu];
+
+// lagrange multipliers
+varf lagrange1([lambda, mu], [ux, uy, p], solver=sparsesolver) = int1d(Th2, 2)(uy*lambda-ux*mu);
+varf lagrange2([lambda, mu], [ux, uy, p], solver=sparsesolver) = int1d(Th2, 2)(-uy*lambda+ux*mu);
+
+// solving
+matrix A1 = stokes1(Xh1, Xh1);
+real[int] B1 = stokes1(0, Xh1);
+matrix A2 = stokes2(Xh2, Xh2);
+real[int] B2 = stokes2(0, Xh2);
+
+matrix L1 = lagrange1(Ih, Xh1);
+matrix L2 = lagrange2(Ih, Xh2);
+real[int] B3(Ih.ndof); B3 = 0;
+
+matrix A = [[A1, 0,L1],
+			[0, A2, L2], 
+			[L1',L2',0]];
+set(A, solver=sparsesolver);
+
+real[int] B = [B1, B2, B3];
+real[int] S1(Xh1.ndof), S2(Xh2.ndof), multipliers(Ih.ndof);
+real[int] sol = A^-1 * B;
+[S1, S2, multipliers] = sol;
+
+p1[] = S1;
+p2[] = S2;
+lambda[] = multipliers;
+
 // plot
+plot([ux1, uy1], p1,[ux2, uy2], p2,value=true, wait=true);
