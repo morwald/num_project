@@ -1,0 +1,20 @@
+// reference solution
+
+// mesh
+mesh Thref = square(400, 400);
+
+// fespaces
+fespace Xhref(Thref, [P1b, P1b, P1]);
+Xhref [uxref, uyref, pref], [vxref, vyref, qref];
+
+// problem
+
+solve stokes0 ([uxref, uyref, pref], [vxref, vyref, qref])
+	= int2d(Thref)(dx(uxref)*dx(vxref) + dy(uxref)*dy(vxref) + dx(uyref)*dx(vyref) + dy(uyref)*dy(vyref))
+	  - int2d(Thref)(pref*(dx(vxref) + dy(vyref)))
+
+	  - int2d(Thref)(qref*(dx(uxref) + dy(uyref)))
+	  - int2d(Thref)(1e-10*pref*qref)
+
+	  + on(3, uxref=1, uyref=0)
+	  + on(1, 2, 4, uxref=0, uyref=0);
