@@ -2,7 +2,7 @@
 real eps = 1e-6; // for penalty method 
 
 real frac = 0.1; // fraction of side length of upper area
-int n2 = 300; // mesh size in upper area top
+int n2 = 300; // mesh size in upper area
 int n1 = n2 * frac; // mesh size in lower area
 
 // lower mesh
@@ -72,8 +72,8 @@ matrix L2 = lagrange2(Ih, Xh2);
 real[int] B3(Ih.ndof); B3 = 0;
 
 matrix A = [[A1, 0,L1],
-			[0, A2, L2], 
-			[L1',L2',0]];
+		    [0, A2, L2], 
+		    [L1',L2',0]];
 set(A, solver=sparsesolver);
 
 real[int] B = [B1, B2, B3];

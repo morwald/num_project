@@ -2,8 +2,8 @@
 real eps = 1e-6; // for penalty method 
 
 real frac = 0.1; // fraction of side length in upper area
-int n2 = 300; // mesh size in upper area top
-int n1 = n2 * frac; // mesh size upper area on the side
+int n2 = 300; // mesh size in upper area
+int n1 = n2 * frac; // mesh size in lower area
 
 // mesh
 border a1(t=0, 1){x=t; y=0; label=1;};
@@ -20,7 +20,7 @@ plot(Th, wait=1);
 
 // fespaces
 fespace Xh(Th, [P1b, P1b, P1]);
-Xh[ux, uy, p], [vx, vy, q];
+Xh [ux, uy, p], [vx, vy, q];
  
 // problem
 solve stokes ([ux, uy, p], [vx, vy, q])
