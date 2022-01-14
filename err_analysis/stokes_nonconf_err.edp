@@ -4,6 +4,7 @@ include "ref_solution.edp"
 // parameters
 real eps = 1e-6; // for penalty method 
 real frac = 0.1; // fraction of side length in upper area
+int n1 = 30; // mesh size in lower area
 
 // borders
 border a1(t=0, 1){x=t; y=0; label=1;};
@@ -18,13 +19,13 @@ border d2(t=0, 1){x=t; y=1-frac; label=2;};
 
 // mesh refinement iterations
 int I = 8;
-real[int] hmaxs(I);
+real[int] N2(I);
 real[int] errH1(I);
 real[int] errL2(I);
 
 for (int i=0; i<I; i++) {
-	int n2 = 50 + 50*i; // mesh size in upper area
-	int n1 = n2 * frac; // mesh size in lower area
+	int n2 = 100 + 50*i; // mesh size in upper area
+	N2[i] = n2;
 	
 	// lower and upper mesh
 	mesh Th1 = buildmesh(a1(n1)+b1((1-frac)*n1)+c1(n1)+d1((1-frac)*n1));
@@ -32,11 +33,6 @@ for (int i=0; i<I; i++) {
 
 	// interface mesh
 	mesh interface = emptymesh(Th2);
-
-	// element size
-	fespace Wh (Th1 , P0);
-	Wh h = hTriangle;
-	hmaxs[i]= h[].max ;
 
 	// lower fespaces and problem
 	fespace Xh1(Th1, [P1b, P1b, P1]);
@@ -105,13 +101,13 @@ for (int i=0; i<I; i++) {
 	                + int2d(Th2)((ux2 - uxref)^2 + (uy2 - uyref)^2));
 
 	cout << "iteration " << i << " :"  << endl;
-	cout << "h : " << hmaxs[i] << endl;
+	cout << "ns : " << N2[i] << endl;
 	cout << "error H1 of velocity : " << errH1[i] << endl;
 	cout << "error L2 of velocity : " << errL2[i] << endl;
 }
 
-ofstream filehmaxs("hmaxs_nonconf.dat");
-filehmaxs << hmaxs << endl;
+ofstream fileN2("n2_nonconf.dat");
+fileN2 << N2 << endl;
 ofstream fileerrH1("errH1_nonconf.dat");
 fileerrH1 << errH1 << endl ;
 ofstream fileerrL2("errL2_nonconf.dat");

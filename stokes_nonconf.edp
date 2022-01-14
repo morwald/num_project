@@ -2,8 +2,8 @@
 real eps = 1e-6; // for penalty method 
 
 real frac = 0.1; // fraction of side length of upper area
-int n2 = 300; // mesh size in upper area
-int n1 = n2 * frac; // mesh size in lower area
+int n2 = 100; // mesh size in upper area
+int n1 = 30; // mesh size in lower area
 
 // lower mesh
 border a1(t=0, 1){x=t; y=0; label=1;};

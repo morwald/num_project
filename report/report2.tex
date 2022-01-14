@@ -34,7 +34,7 @@
 \usepackage[utf8]{inputenc}
 
 \title{%
-  Project 1 - Flow in a driven cavity and non-conforming mesh coupling \\
+  Project 1 - Flow in a driven cavity and non conforming mesh coupling \\
   \bigskip
   \large Numerics for Fluids, Structures and Electromagnetics}
 
@@ -60,11 +60,11 @@ where $\mathbf{f} : \Omega \rightarrow \mathbb{R}^2$ and $\mathbf{g} :
 assume that $\mathbf{f} \in [H^{-1}(\Omega)]^2=\mathbf{H}^{-1}(\Omega)$ and
 $\mathbf{g} \in [H^{1/2}(\partial\Omega)]^2=\mathbf{H}^{1/2}(\partial\Omega)$.
 
-This problem corresponds to solving a flow of an incompressible fluid where
+This problem corresponds to solving a flow of a incompressible fluid where
 viscous forces dominate inertial forces (i.e. low Reynolds number). The
-equations are essentially stationary and linearized Navier-Stokes equations
-neglecting inertial terms. The dynamic viscosity is set to 1 in this
-formulation of the problem. 
+equations are essentially the linearized Navier-Stokes equations neglecting
+inertial terms. The dynamic viscosity is set to one in this formalation of the
+problem. 
 
 \section{Question 1}
 Suppose, ab absurdo, that there exists a solution $\mathbf{u}$ to problem \ref{problem} but \\
@@ -78,9 +78,9 @@ the assumption. Hence this proves that  $\int_{\partial\Omega}
 \mathbf{g}\cdot\mathbf{n}=0$ is a necessary condition for the existence of a
 solution.
 
-From a physical point of view, this corresponds to the fact that there can be
-no net flux outwards from the domain $\Omega$ as the flow has no source of
-fluid inside the domain.
+From a physical point of view this correspond to the fact that there can be no
+net flux outwards from the domain $\Omega$ as the flow has no source of fluid
+inside the domain.
 
 \section*{Question 2}
 \subsection*{Weak formulation}
@@ -95,7 +95,7 @@ the domain $\Omega$. Hence we get :
 In the development above we did an integration by parts and then used the fact
 that $\mathbf{u}=\mathbf{g} \textrm{ on } \partial\Omega$.
 
-Analogously we multiply the second equation by another test function
+Analogously we multiply the second equation by a another test function
 $\mathbf(q)$ and integrate over $\Omega$ , using the same properties the
 equation becomes :
 \begin{equation*}
@@ -103,30 +103,31 @@ equation becomes :
 \end{equation*}
 
 \subsection*{Functional spaces}
-It remains the question of which are the functional spaces to be imposed for
-the solution of our problem. In the first equation the gradient of the test
-function $\mathbf{v}$ appears. Thus we want to make the integral for the test
-function vanish on the boundary. A natural choice is : $[H^1_0(\Omega)]^2 =
-\mathbf{H}^1_0(\Omega)$ This space is formally defined by :  
+It remains the question which are the functional spaces to be imposed for the
+solution of our problem. In the first equation the gradient of the
+test function $\mathbf{v}$ appears. Thus we we wan't make the integral for
+the test function vanish on the boundary. A natural choice is :
+$[H^1_0(\Omega)]^2 = \mathbf{H}^1_0(\Omega)$
+This space is formally defined by :  
 \begin{align*}
 	\mathbf{H}^1_0(\Omega) = \left\{\mathbf{u} \;:\; \mathbf{u} \in L^2(\Omega),
 	\nabla \mathbf{u} \in L^2(\Omega), \textrm{and}
 	\mathbf{u}|_{\partial\Omega}=0 \right\}
 \end{align*}
 
-Thanks to this definition the two border integrals will vanish. For the second
-test function $\mathbf{q}$, nothing special appears, nothing more than integral
-over the domain, so a natural space is $L^2(\Omega)$. On the other hand, for
-the spaces of solutions, to apply the Lax-Milgram theorem we need the same
-space of functions. However in this case this is not possible. We have a
-boundary condition on the border for $\mathbf{u}$. So we consider the affine
-space $[H^1_g(\Omega)]^2=\mathbf{H}^1_g(\Omega)$ defined as :
+Thanks to this definition on the space the two border integrals will vanish.
+For the second test functions, nothing special appears, nothing more than
+integral over the domain, so a natural space is $L^2(\Omega)$. 
+On the other hand, for the spaces of solutions, to apply the Lax-Milgram theorem we need the
+same space functions. However in this case this is not possible. First we have
+a boundary condition on the border for $\mathbf{u}$. So we consider the affine
+space $[H^1_g(\Omega)]^2=\mathbf{H}^1_g(\Omega)$ define as :
 \begin{align*}
     \mathbf{H}^1_g(\Omega)=\left\{\mathbf{u} \;:\; u\in L^2(\Omega), \nabla \mathbf{u} \in L^2(\Omega), \textrm{ and } \mathbf{u}|_{\partial\Omega}=g \right\}
 \end{align*}
 For the pressure, we notice that the solution is unique up to a constant term.
 To fix this we can impose that $\int_\Omega p =0$. We choose $L_0^2(\Omega)$ as
-the space for pressure, and we impose this space also for $q$.
+the space for pression, and we impose this space also for $q$.
 \begin{align*}
     L^2_0(\Omega)=\left\{p\in L^2(\Omega)\; : \; \int_\Omega p =0\right\}
 \end{align*}
@@ -150,39 +151,21 @@ $\forall (\mathbf{v}_h,q)\in \mathbf{V}_{h,0}(\Omega) \times Q_{h,0}(\Omega)$ th
 following holds :
 \begin{align}
 	\label{pert_problem}
-	a(\mathbf{u}_h,\mathbf{v}_h) - b(\mathbf{v}_h,p_h) &= F(\mathbf{v}_h) \\
+	a(\mathbf{u}_h,\mathbf{v}_h) - b(\mathbf{v}_h,p_h) &= F(\mathbf{v}) \\
 	b(\mathbf{u}_h, q_h) &= 0 \nonumber
 \end{align}
-The discrete case has to verify the \textbf{descrete inf-sup} condition. A the
-common stable choice is the mini-element which consist of an enriched
-$\mathbb{P}_1$ finite element space with so-called bubble functions and $\mathbb{P}_1$ FEM
-space for the pressure.
+The descrete case has to verify the \textbf{descrete inf-sup} condition. A
+common stable choice is the mini-element which consist of an enreached
+$\mathbb{P}_1$ finite element space with bubble function and
+$\mathbb{P}_1$ FEM space for the pressure.
 
 \subsection*{A priori error estimate}
-The a priori error for a discritization scheme of the mixed formulation is given by :
-\begin{align}
-	\label{error}
-	\| \mathbf{u} - \mathbf{u}_h \|_{\mathbf{Q}_h}
-	\leqq C_1(\alpha_h) \inf_{q_h \in \mathbf{Q}_h} \| p - q_h \|
-	+ C_2(\alpha_h, \beta_h) \inf_{\mathbf{v}_h \in \mathbf{V}_h} \| \mathbf{u} - \mathbf{v}_h \|
-\end{align}
-Where $\alpha_h$ (corsivity of the bilinear form $a$) and $\beta_h$ (from
-inf-sup condition) have to be bounded from below to ensure uniform stability to
-a quasi optimal solution. For our mini-element these conditions are satisfied.
-Due to the {$\mathbb{P}_1$} convergence of the velocity space the error can be
-bounded by :
-\begin{align}
-	\label{final_error}
-	\| \mathbf{u} - \mathbf{u}_h \|_{\mathbf{V}_h} \leqq C h
-\end{align}
-Here $C$ is a constant independent of $h$. Note as well that a similar
-formulation can be obtained for the pressure. 
 
 \section*{Question 3}
 We implemented the problem with the functional spaces given in the previous
-section. The complete is shown in the annex \ref{annex}. To fix the constant
-part of the pressure (we don't have any pressure boundary conditions) we solve
-a slightly different problem :
+section. The complete is shown in the annex \ref{annex}. To fix the
+constant part of the pressure (we don't have any pressure boundary conditions)
+we solve a slightly different problem :
 
 Find $(\mathbf{u}^\epsilon_h,p)\in \mathbf{V}_h(\Omega) \times \mathbf{Q}_h(\Omega)$ such that
 $\forall (\mathbf{v}_h,q)\in \mathbf{V}_{h,0}(\Omega) \times \tilde{Q}_h(\Omega)$ the
@@ -194,24 +177,23 @@ following holds :
 	c(p^\epsilon_h,q^\epsilon_h) &= 0 \nonumber
 \end{align}
 
-These equations are called the perturbed Stokes equations. It is simple to
+This equations are called the perturbed Stokes equations. It is simple to
 verify that the zero mean pressure condition is verified. ... show that there
 exists a unique solution to this problem and that the error of the perturbed
-problem is not too far away from the actual problem we wanted to solve. This
-strategy is called the penalty method and helps to make the matrix formulation
-of the discrete problem symmetric,  semi-definite, and sparse. This property is
-desirable from a computational point of view (for iterative solvers). For
-completeness, we will solve the perturbed problem even if this is not necessary
-for the following questions as we use a direct solver.
+problem is not to far away from the the actual problem we wanted solve. This
+strategy is called the penalty method and helps to makes the matrix formulation
+of the descrete problem positive semi-definit. This property is desirable from
+a computional point of view. For completness we will solve the perturbed
+problem even if this is not absolutly necessary for the following questions.
 
-In our case, we know that pressures will diverge at the corners of the top
-boundary when we refine the mesh. Problems thus mostly occur close to the top
-and we will define the mesh to be finer close to this boundary. The space is
-divided into two rectangular regions. Specifically, the upper part will have a
-side length of 0.1 of the total square. In each region, the mesh will have a
-certain number of vertices per unit length (N1 for the regions with less
-interest and N2 for the other region). The resulting mesh and solutions are
-depicted below:
+In our case we know that pressures will diverge at the corners of the top
+boundary when we refine the mesh. Problems thus appear mostly occur close to
+the top boundary and we will define the mesh to be finer close to this
+boundary. The space is divided into two rectangular regions. Specifally the
+upper part will have side length of 0.1 of the total square. In each region the
+mesh will have a certain number of vertices per unit length (N1 for the regions
+with less interest and N2 for the other region). The ratio between N1 and N2 is
+fixed to 10. The resulting mesh and solutions are depicted below:
 
 \begin{figure}[h]
 	\includegraphics[width=0.5\textwidth]{imgs/Mesh_100_50.PNG}
@@ -221,20 +203,24 @@ depicted below:
 \end{figure}
 
 \section*{Question 4}
-To reach higher accuracy, we can also use two non-conforming meshes and connect
-them thanks to Lagrange multipliers. Due to this separation, we can ask for
-more precision where we need and release accuracy in the area without interest.
-This is the so-called Mortar method with dual Lagrange multipliers. We
-implemented this method and the code is as well given in the annex. In addition
-for the Lagrange multipliers, there has to be a certain mesh and corresponding
-FEM space. The mesh just consists of the interface between the two domains, but
-in FreeFEM++ this is not possible, so we took the mesh as the border of the
-upper mesh. Then we used $\mathbf{P}_0$ elements for each multiplier which
-ensure continuity on the normal and tangential components of the velocity. In
-contrast to a conforming mesh, we now need two finite element spaces on two
-different meshes defined independently. To deal with it we defined several
-variational forms and extracted the associated matrix form to reconstruct our
-problem as a linear system.
+To reach higher accuracy, we can also use two non conforming meshes and connect
+them thanks to lagrange multipliers. Due to this separation we can ask for more
+precision where we need and release accuracy in the area without interest. This
+is the so-called Mortar method with dual Lagrange multipliers. We implemented
+this method and the code can be seen in the annex.
+In contrast to the conforming problem the inerface will
+contrast to the conforming case we now need two finite element spaces on two
+different meshs. In addition the lagrange multipliers we needed also to define
+a certain mesh and a certain finite element spaces. For the mesh it should be
+the
+interface between the two domains, but in FreeFEM++ this is not possible, so we
+took the mesh as the border mesh of thighter mesh. For this space we used 
+$\mathbf{P}_0$ for each multipliers and there is one multipliers to ensure
+no discontinuities for the two axis. 
+
+The two spaces are not defined on the same mesh. To deal with it we defined
+several variationnal forms, took from those the matrix form and reconstructed
+our problem as a linear system.
 
 To see the difference between the previous method and we tested it with
 different mesh sizes, the results can be seen below.
@@ -247,7 +233,7 @@ different mesh sizes, the results can be seen below.
     \label{fig:Meshes}
 \end{figure}
 
-After a certain coefficient, the mesh is too dense to see the difference between them.
+After a certain coefficient, the mesh is too dense to see difference between them.
 
 \begin{figure}[h]
 	\includegraphics[width=0.5\textwidth]{imgs/solution_100_50.PNG}
@@ -261,20 +247,19 @@ After a certain coefficient, the mesh is too dense to see the difference between
 \end{figure}
 Comparing these results to the previous ones, we can see that the results are
 similar, but we could reach higher accuracy around the interest regions. The
-pressure is still diverging as expected when refining the mesh.
+pressure is still diverging as expected when we refining the mesh.
 
 \subsection*{Comparison between conforming and non-conforming meshs}
 \begin{figure}
 	\includegraphics[width=0.5\textwidth]{imgs/errH1.jpg}
 	\includegraphics[width=0.5\textwidth]{imgs/errL2.jpg}
-	\caption{$H^1$ seminorm and $L^2$ norm of velocity versus a reference solution, for conformal and non-conformal meshs}
+	\capture{$H^1$ seminorm and $L^2$ norm of velocity versus a reference solution, for conformal and non-conformal meshs}
 \end{figure}
 
 \section*{Question 5}
 
-
 \section*{Annex} \label{annex}
-Below the code for solving the Stokes problem on a conforming and non-conforming are shown.
+Below the code for solving the stokes problem on a conforming and non conforming are shown.
 
 \subsection*{Stokes on conforming mesh}
 \begin{lstlisting} [language=C++]

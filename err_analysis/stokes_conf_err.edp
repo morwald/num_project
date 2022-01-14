@@ -4,6 +4,7 @@ include "ref_solution.edp"
 // parameters
 real eps = 1e-6; // for penalty method 
 real frac = 0.1; // fraction of side length in upper area
+int n1 = 30; // mesh size in lower area
 
 // borders
 border a1(t=0, 1){x=t; y=0; label=1;};
@@ -15,14 +16,14 @@ border b2(t=0, 1){x=1-t; y=1; label=3;};
 border c2(t=0, frac){x=0; y=1-t; label=1;};
 
 // mesh refinement iterations 
-int I = 8;
-real[int] hmaxs(I);
+int I = 7;
+real[int] N2(I);
 real[int] errH1(I);
 real[int] errL2(I);
 
 for (int i=0; i<I; i++) {
-	int n2 = 50 + 50*i; // mesh size in upper area
-	int n1 = n2 * frac; // mesh size in lower area
+	int n2 = 100 + 50*i; // mesh size in upper area
+	N2[i] = n2;
 
 	mesh Th = buildmesh(a1(n1)+b1((1-frac)*n1)+c12(n1)+d1((1-frac)*n1)+a2(frac*n2)+b2(n2)+c2(frac*n2));
 
@@ -30,11 +31,6 @@ for (int i=0; i<I; i++) {
 	fespace Xh(Th, [P1b, P1b, P1]);
 	Xh[ux, uy, p], [vx, vy, q];
 
-	// element size
-	fespace Wh (Th , P0);
-	Wh h = hTriangle;
-	hmaxs[i]= h[].max ;
-	 
 	// problem
 	solve stokes([ux, uy, p], [vx, vy, q])
 		=   int2d(Th)(dx(ux)*dx(vx) + dy(ux)*dy(vx) + dx(uy)*dx(vy) + dy(uy)*dy(vy))
@@ -51,14 +47,14 @@ for (int i=0; i<I; i++) {
 	errL2[i] = sqrt(int2d(Th)((ux - uxref)^2 + (uy - uyref)^2));
 
 	cout << "iteration " << i << " :"  << endl;
-	cout << "h : " << hmaxs[i] << endl;
+	cout << "n2 : " << N2[i] << endl;
 	cout << "error H1 of velocity : " << errH1[i] << endl;
 	cout << "error L2 of velocity : " << errL2[i] << endl;
 }
 
 // save
-ofstream filehmaxs("hmaxs_conf.dat");
-filehmaxs << hmaxs << endl;
+ofstream fileN2("n2_conf.dat");
+fileN2 << N2 << endl;
 ofstream fileerrH1("errH1_conf.dat");
 fileerrH1 << errH1 << endl ;
 ofstream fileerrL2("errL2_conf.dat");
