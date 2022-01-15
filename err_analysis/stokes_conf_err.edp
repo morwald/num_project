@@ -25,7 +25,7 @@ for (int i=0; i<I; i++) {
 	int n2 = 100 + 50*i; // mesh size in upper area
 	N2[i] = n2;
 
-	mesh Th = buildmesh(a1(n1)+b1((1-frac)*n1)+c12(n1)+d1((1-frac)*n1)+a2(frac*n2)+b2(n2)+c2(frac*n2));
+	mesh Th = buildmesh(a1(n1)+b1((1-frac)*n1)+c12(n2)+d1((1-frac)*n1)+a2(frac*n2)+b2(n2)+c2(frac*n2));
 
 	// fespaces
 	fespace Xh(Th, [P1b, P1b, P1]);

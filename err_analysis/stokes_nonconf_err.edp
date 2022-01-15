@@ -18,7 +18,7 @@ border c2(t=0, frac){x=0; y=1-t; label=1;};
 border d2(t=0, 1){x=t; y=1-frac; label=2;};
 
 // mesh refinement iterations
-int I = 8;
+int I = 7;
 real[int] N2(I);
 real[int] errH1(I);
 real[int] errL2(I);
